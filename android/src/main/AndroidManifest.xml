@@ -2,8 +2,5 @@
   package="com.mapbox.mapboxgl">
 
     <application>
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
     </application>
 </manifest>

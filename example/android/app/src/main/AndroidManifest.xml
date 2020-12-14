@@ -18,7 +18,6 @@
         android:label="mapbox_gl_example"
         android:icon="@mipmap/ic_launcher">
 
-        <meta-data android:name="flutterEmbedding" android:value="1"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
