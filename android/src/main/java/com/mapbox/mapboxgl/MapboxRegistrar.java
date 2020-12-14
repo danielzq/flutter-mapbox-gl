@@ -3,8 +3,6 @@ package com.mapbox.mapboxgl;
 import android.app.Activity;
 import android.content.Context;
 
-import androidx.annotation.Nullable;
-
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.BinaryMessenger;
@@ -18,14 +16,17 @@ import io.flutter.view.TextureRegistry;
  */
 class MapboxRegistrar implements PluginRegistry.Registrar {
 
-    private final FlutterPlugin.FlutterPluginBinding binding;
-    private final ActivityPluginBinding activityPluginBinding;
+    private FlutterPlugin.FlutterPluginBinding binding;
+    private ActivityPluginBinding activityPluginBinding;
     private Activity activity;
 
-    public MapboxRegistrar(Activity activity, FlutterPlugin.FlutterPluginBinding binding, @Nullable ActivityPluginBinding activityPluginBinding) {
-        this.activity = activity;
+    public MapboxRegistrar(FlutterPlugin.FlutterPluginBinding binding) {
         this.binding = binding;
+    }
+
+    public void setActivityPluginBinding(ActivityPluginBinding activityPluginBinding) {
         this.activityPluginBinding = activityPluginBinding;
+        this.activity = activityPluginBinding.getActivity();
     }
 
     @Override

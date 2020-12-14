@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
-import io.flutter.embedding.engine.plugins.shim.ShimPluginRegistry;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
@@ -36,8 +35,9 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware, Applicati
   private int registrarActivityHashCode;
 
   private MethodChannel methodChannel;
-  private Activity activeActivity;
+  private FlutterPluginBinding flutterPluginBinding;
   private ActivityPluginBinding activityPluginBinding;
+  private MapboxRegistrar registrar;
 
   public static void registerWith(Registrar registrar) {
     if (registrar.activity() == null) {
@@ -60,7 +60,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware, Applicati
 
   @Override
   public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-    activeActivity = activity;
     if (activity.hashCode() != registrarActivityHashCode) {
       return;
     }
@@ -77,7 +76,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware, Applicati
 
   @Override
   public void onActivityResumed(Activity activity) {
-    activeActivity = activity;
     if (activity.hashCode() != registrarActivityHashCode) {
       return;
     }
@@ -118,9 +116,21 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware, Applicati
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-    ShimPluginRegistry shimPluginRegistry = new ShimPluginRegistry(binding.getFlutterEngine());
-    Registrar registrar = shimPluginRegistry.registrarFor("com.mapbox.mapboxgl.MapboxMapsPlugin");
-//    MapboxRegistrar registrar = new MapboxRegistrar(activeActivity, binding, activityPluginBinding);
+//    ShimPluginRegistry shimPluginRegistry = new ShimPluginRegistry(binding.getFlutterEngine());
+//    Registrar registrar = shimPluginRegistry.registrarFor("com.mapbox.mapboxgl.MapboxMapsPlugin");
+    flutterPluginBinding = binding;
+
+  }
+
+  @Override
+  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+  }
+
+  @Override
+  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+    activityPluginBinding = binding;
+    registrar = new MapboxRegistrar(flutterPluginBinding);
+    registrar.setActivityPluginBinding(binding);
     if (registrar.activity() == null) {
       // When a background flutter view tries to register the plugin, the registrar has no activity.
       // We stop the registration process as this plugin is foreground only.
@@ -135,18 +145,8 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware, Applicati
                     "plugins.flutter.io/mapbox_gl", new MapboxMapFactory(plugin.state, registrar));
 
 
-    methodChannel = new MethodChannel(binding.getFlutterEngine().getDartExecutor(), "plugins.flutter.io/mapbox_gl");
+    methodChannel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "plugins.flutter.io/mapbox_gl");
     methodChannel.setMethodCallHandler(new GlobalMethodHandler(registrar));
-  }
-
-  @Override
-  public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-    methodChannel.setMethodCallHandler(null);
-  }
-
-  @Override
-  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-    activityPluginBinding = binding;
   }
 
   @Override
@@ -161,6 +161,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware, Applicati
 
   @Override
   public void onDetachedFromActivity() {
-
+    methodChannel.setMethodCallHandler(null);
   }
 }
